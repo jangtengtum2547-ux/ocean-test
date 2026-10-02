@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบประเมินบุคลิกภาพ Big Five (OCEAN)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Cinzel:wght@600;700;800&display=swap');
+
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-gold: #c5a059;
+            --border-light: #e2e8f0;
+            --text-dark: #1e293b;
+            --text-gold: #b4832e;
+            --text-muted: #64748b;
+            --accent-orange: #d97706;
+            --error: #ef4444;
+
+            --theme-color: #b4832e;
+            --color-o: #0284c7;
+            --color-c: #dc2626;
+            --color-e: #d97706;
+            --color-a: #16a34a;
+            --color-n: #9333ea;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Sarabun', sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 30px 15px;
+            min-height: 100vh;
+            transition: background-color 0.8s ease, color 0.8s ease;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-gold);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 40px 30px;
+            position: relative;
+            transition: background 0.8s ease, border-color 0.8s ease, box-shadow 0.8s ease;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* Header & Hero */
+        .hero { text-align: center; padding: 20px 10px; }
+        .hero h1 {
+            font-family: 'Cinzel', 'Sarabun', serif;
+            font-size: 2.4rem;
+            color: var(--text-gold);
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+        }
+        .hero p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 30px; font-weight: 400; }
+
+        .btn {
+            background: linear-gradient(135deg, #c5a059 0%, #947132 100%);
+            color: #ffffff;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.5);
+            background: linear-gradient(135deg, #d4af37 0%, #a37c3f 100%);
+        }
+        .btn-secondary {
+            background: rgba(125, 125, 125, 0.1);
+            color: inherit;
+            border: 1px solid var(--border-light);
+            box-shadow: none;
+        }
+        .btn-secondary:hover { background: rgba(125, 125, 125, 0.2); }
+
+        /* Progress Bar */
+        .progress-header { margin-bottom: 30px; background: rgba(0,0,0,0.03); padding: 18px 24px; border-radius: 16px; border: 1px solid var(--border-light); }
+        .progress-bar-bg { background: rgba(0,0,0,0.1); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 12px; }
+        .progress-bar-fill { background: linear-gradient(90deg, #c5a059, #b4832e); height: 100%; width: 0%; transition: width 0.4s ease; }
+
+        /* Question Cards */
+        .question-card {
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: border-color 0.3s;
+        }
+        .question-card.unanswered { border: 1px solid var(--error); background: rgba(239, 68, 68, 0.05); }
+        .question-title { font-weight: 600; font-size: 1.1rem; color: inherit; margin-bottom: 18px; }
+
+        .options-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+
+        .option-btn {
+            border: 1px solid var(--border-light);
+            background: rgba(0, 0, 0, 0.02);
+            color: var(--text-muted);
+            padding: 12px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .option-btn:hover { border-color: var(--border-gold); color: inherit; }
+        .option-btn.selected {
+            background: rgba(197, 160, 89, 0.2);
+            border: 1px solid var(--border-gold);
+            color: var(--text-gold);
+            font-weight: 600;
+        }
+
+        .nav-actions { display: flex; justify-content: space-between; margin-top: 35px; }
+        .alert-error { color: var(--error); font-weight: 500; text-align: center; margin-top: 15px; display: none; }
+
+        /* Result Screen Elements */
+        .result-header { text-align: center; padding: 10px 0 30px 0; }
+        
+        .card-frame {
+            max-width: 360px;
+            margin: 0 auto 30px auto;
+            border: 3px solid var(--theme-color);
+            border-radius: 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: all 0.5s ease;
+        }
+        .card-frame img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            display: block;
+        }
+
+        .result-header h2 { 
+            font-family: 'Cinzel', 'Sarabun', serif; 
+            color: var(--theme-color); 
+            font-size: 2rem; 
+            margin-bottom: 10px;
+            transition: color 0.5s ease;
+        }
+        .result-desc { color: var(--text-muted); font-size: 1.05rem; max-width: 650px; margin: 0 auto; }
+
+        /* Analysis Box: Strengths & Weaknesses */
+        .analysis-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        @media (max-width: 650px) { .analysis-container { grid-template-columns: 1fr; } }
+
+        .analysis-box {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 22px;
+        }
+        .analysis-box.strengths { border-left: 4px solid #16a34a; }
+        .analysis-box.growth { border-left: 4px solid #dc2626; }
+        .analysis-box h4 { font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .analysis-box.strengths h4 { color: #16a34a; }
+        .analysis-box.growth h4 { color: #dc2626; }
+        .analysis-box ul { list-style: none; padding-left: 0; }
+        .analysis-box li { color: inherit; font-size: 0.95rem; margin-bottom: 8px; position: relative; padding-left: 18px; }
+        .analysis-box li::before { content: "•"; position: absolute; left: 0; color: var(--text-muted); }
+
+        /* Score List */
+        .score-list { background: rgba(0,0,0,0.15); border-radius: 18px; padding: 25px; border: 1px solid var(--border-light); margin-bottom: 35px; }
+        .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .score-label { width: 45%; font-weight: 500; font-size: 0.95rem; color: inherit; }
+        .score-bar-bg { flex-grow: 1; height: 10px; background: rgba(0,0,0,0.1); border-radius: 5px; margin: 0 15px; overflow: hidden; }
+        .score-bar-fill { height: 100%; border-radius: 5px; }
+        .score-value { width: 15%; text-align: right; font-weight: 600; font-size: 0.95rem; }
+
+        /* Academic Formal Research Box */
+        .research-quest-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            padding: 30px 25px;
+            text-align: center;
+            margin: 40px 0;
+            position: relative;
+        }
+        .research-quest-box h3 { 
+            font-family: 'Sarabun', serif; 
+            font-weight: 700;
+            color: var(--text-gold); 
+            font-size: 1.35rem; 
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        .research-quest-box p { 
+            color: inherit; 
+            font-size: 1rem; 
+            margin-bottom: 22px; 
+            opacity: 0.9;
+            line-height: 1.7;
+        }
+        
+        .btn-quest {
+            background: linear-gradient(135deg, #c5a059 0%, #947132 100%);
+            color: #ffffff;
+            padding: 14px 36px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-quest:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(197, 160, 89, 0.4);
+            background: linear-gradient(135deg, #d4af37 0%, #a37c3f 100%);
+        }
+
+        .disclaimer { text-align: center; font-size: 0.85rem; color: var(--text-muted); margin-top: 25px; border-top: 1px solid var(--border-light); padding-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- หน้าแรก -->
+    <div id="screen-landing" class="screen active">
+        <div class="hero">
+            <div style="font-size:3rem; margin-bottom:15px; opacity:0.8;">🏛️</div>
+            <h1>แบบประเมินบุคลิกภาพ Big Five (OCEAN)</h1>
+            <p>ค้นพบจุดแข็งและลักษณะบุคลิกภาพตามหลักจิตวิทยาเชิงทฤษฎี Big Five Traits</p>
+            <div style="background:rgba(0,0,0,0.03); border: 1px solid var(--border-light); display:inline-block; padding:10px 24px; border-radius:50px; font-size:0.95rem; margin-bottom:30px; color:inherit;">
+                ⏱️ ใช้เวลาประมาณ 5 นาที • 📜 30 ข้อคำถาม • ตอบตามความเป็นจริง
+            </div>
+            <br>
+            <button class="btn" id="btn-start">เริ่มทำแบบประเมิน</button>
+        </div>
+    </div>
+
+    <!-- หน้าทำแบบประเมิน -->
+    <div id="screen-quiz" class="screen">
+        <div class="progress-header">
+            <div style="display:flex; justify-content:space-between; font-weight:600; color:var(--text-gold); font-size:0.95rem;">
+                <span id="section-title">หมวดหมู่คำถาม</span>
+                <span id="progress-text">ข้อ 1/30</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+        </div>
+        <div id="questions-container"></div>
+        <div class="alert-error" id="validation-alert">⚠️ กรุณาตอบคำถามให้ครบทุกข้อในหน้านี้ก่อนดำเนินการต่อ</div>
+        <div class="nav-actions">
+            <button class="btn btn-secondary" id="btn-prev" style="visibility:hidden;">◀ ก่อนหน้า</button>
+            <button class="btn" id="btn-next">ถัดไป ▶</button>
+        </div>
+    </div>
+
+    <!-- หน้าแสดงผลลัพธ์ -->
+    <div id="screen-result" class="screen">
+        <div class="result-header">
+            <div class="card-frame" id="card-frame">
+                <img id="result-card-img" src="" alt="Personality Card">
+            </div>
+            <div style="font-size:0.9rem; font-weight:600; color:var(--text-gold); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;">บุคลิกภาพที่มีคะแนนโดดเด่นสูงสุด</div>
+            <h2 id="result-title">กำลังประมวลผล...</h2>
+            <p class="result-desc" id="result-desc">คำอธิบายภาพรวมบุคลิกภาพ</p>
+        </div>
+
+        <!-- กล่องวิเคราะห์จุดเด่น & จุดที่ควรระวัง -->
+        <div class="analysis-container">
+            <div class="analysis-box strengths">
+                <h4>จุดเด่นและความเชี่ยวชาญหลัก</h4>
+                <ul id="strengths-list"></ul>
+            </div>
+            <div class="analysis-box growth">
+                <h4>ข้อควรระวังและแนวทางพัฒนา</h4>
+                <ul id="growth-list"></ul>
+            </div>
+        </div>
+
+        <!-- รายงานคะแนนทั้ง 5 ด้าน -->
+        <div class="score-list">
+            <h3 style="margin-bottom:20px; color:var(--text-gold); font-size:1.1rem; text-align:center; font-family:'Sarabun', sans-serif; font-weight:600;">สรุปสัดส่วนคะแนนองค์ประกอบบุคลิกภาพทั้ง 5 ด้าน</h3>
+            <div id="scores-container"></div>
+        </div>
+
+        <!-- กล่องขอความอนุเคราะห์ตอบแบบสำรวจเพื่อการวิชาการ (Academic Formal Box) -->
+        <div class="research-quest-box">
+            <h3>ขอความอนุเคราะห์ตอบแบบสอบถามเพื่อการศึกษาวิจัย</h3>
+            <p>
+                เพื่อให้ชุดเครื่องมือประเมินนี้ได้รับการพัฒนาปรับปรุงให้มีคุณภาพและความเที่ยงตรงทางวิชาการยิ่งขึ้น<br>
+                ผู้วิจัยขอความอนุเคราะห์สละเวลาประมาณ 2 นาที ในการร่วมตอบแบบสอบถามเพื่อการวิจัยเพิ่มเติม
+            </p>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSei01CJf_1qEIuJ9LDY8ZcWmzPfUjK5z414sGQF_IQQH2dduw/viewform?usp=header" target="_blank" class="btn-quest">
+                ไปยังแบบสอบถามงานวิจัย (Google Forms)
+            </a>
+        </div>
+
+        <div style="text-align:center;">
+            <button class="btn btn-secondary" id="btn-restart">🔄 ทำแบบประเมินใหม่อีกครั้ง</button>
+        </div>
+        <div class="disclaimer">
+            หมายเหตุ: แบบประเมินนี้จัดทำขึ้นเพื่อการวิจัยและการประเมินตนเองเบื้องต้นตามทฤษฎีจิตวิทยา Big Five Personality Traits มิใช่การวินิจฉัยทางการแพทย์หรือจิตวิทยาคลินิก
+        </div>
+    </div>
+</div>
+
+<script>
+const LOCAL_CARDS = { O: 'O.png', C: 'C.png', E: 'E.png', A: 'A.png', N: 'N.png' };
+
+const THEME_STYLES = {
+    N: {
+        bgColor: '#0b0c10',
+        cardBg: '#12141d',
+        textColor: '#f3f4f6',
+        textGold: '#d4af37',
+        borderLight: 'rgba(212, 175, 55, 0.2)',
+        mutedColor: '#9ca3af'
+    },
+    O: {
+        bgColor: '#03192e',
+        cardBg: '#082545',
+        textColor: '#f0f9ff',
+        textGold: '#38bdf8',
+        borderLight: 'rgba(56, 189, 248, 0.2)',
+        mutedColor: '#94a3b8'
+    },
+    C: {
+        bgColor: '#1a0505',
+        cardBg: '#2a0a0a',
+        textColor: '#fef2f2',
+        textGold: '#f87171',
+        borderLight: 'rgba(248, 113, 113, 0.2)',
+        mutedColor: '#a1a1aa'
+    },
+    E: {
+        bgColor: '#1c1305',
+        cardBg: '#2d1e08',
+        textColor: '#fffbeb',
+        textGold: '#fbbf24',
+        borderLight: 'rgba(251, 191, 36, 0.2)',
+        mutedColor: '#a1a1aa'
+    },
+    A: {
+        bgColor: '#041c11',
+        cardBg: '#092d1c',
+        textColor: '#f0fdf4',
+        textGold: '#4ade80',
+        borderLight: 'rgba(74, 222, 128, 0.2)',
+        mutedColor: '#94a3b8'
+    }
+};
+
+const TRAIT_ANALYSIS = {
+    O: {
+        title: 'O — "OCEAN" THE EXPLORER (นักสำรวจผู้เปิดรับสิ่งใหม่)',
+        desc: 'คุณเป็นผู้ที่มีความคิดสร้างสรรค์ เปิดรับไอเดียใหม่ๆ และชอบเรียนรู้ประสบการณ์ที่ไม่คุ้นเคย',
+        color: '#38bdf8',
+        strengths: [
+            'มีความคิดสร้างสรรค์และจินตนาการกว้างไกล',
+            'เปิดรับความเห็นและมุมมองที่แตกต่าง',
+            'เรียนรู้และปรับตัวกับสิ่งใหม่ได้รวดเร็ว'
+        ],
+        growth: [
+            'อาจเบื่อง่ายเมื่อต้องทำงานในระบบเดิมนานๆ',
+            'อาจคิดค้นไอเดียมากเกินไปจนยากในการลงมือทำจริง'
+        ]
+    },
+    C: {
+        title: 'C — "CONNIE" THE PLANNER (นักวางแผนอย่างมีระเบียบ)',
+        desc: 'คุณเป็นคนมีระเบียบวินัย ละเอียดรอบคอบ และมุ่งมั่นทำเป้าหมายให้สำเร็จอย่างเป็นระบบ',
+        color: '#f87171',
+        strengths: [
+            'มีวินัยและการจัดระเบียบสูง รับผิดชอบงานได้ดี',
+            'วางแผนรอบคอบ บริหารจัดการเวลาได้เยี่ยม',
+            'ใส่ใจในรายละเอียดและมุ่งเน้นผลสัมฤทธิ์'
+        ],
+        growth: [
+            'อาจรู้สึกเครียดเมื่อแผนงานไม่เป็นไปตามคาด',
+            'บางครั้งอาจเข้มงวดกับตนเองและผู้อื่นมากเกินไป'
+        ]
+    },
+    E: {
+        title: 'E — "EX" THE COMMUNICATOR (นักสื่อสารผู้ทรงพลัง)',
+        desc: 'คุณเป็นคนมีพลังทางสังคม ชอบปฏิสัมพันธ์ และสามารถสื่อสารสร้างมิตรภาพได้อย่างโดดเด่น',
+        color: '#fbbf24',
+        strengths: [
+            'สร้างบรรยากาศที่ดีและเข้าหากลุ่มคนใหม่ได้ง่าย',
+            'กล้าแสดงออก มั่นใจในการสื่อสาร',
+            'ได้รับพลังงานจากการทำกิจกรรมร่วมกับผู้อื่น'
+        ],
+        growth: [
+            'อาจรู้สึกอึดอัดเมื่อต้องทำงานคนเดียวนานๆ',
+            'อาจตัดสินใจรวดเร็วตามอารมณ์ในบางสถานการณ์'
+        ]
+    },
+    A: {
+        title: 'A — "AMY" THE MEDIATOR (ผู้ประสานความสัมพันธ์และมิตรภาพ)',
+        desc: 'คุณมีความเห็นอกเห็นใจสูง เข้าอกเข้าใจผู้อื่น และเน้นสร้างความประนีประนอมในทีม',
+        color: '#4ade80',
+        strengths: [
+            'เข้าใจและใส่ใจความรู้สึกคนรอบข้างอย่างจริงใจ',
+            'เป็นผู้ฟังที่ดี ไกล่เกลี่ยความขัดแย้งได้ดี',
+            'พร้อมช่วยเหลือและร่วมมือกับผู้อื่นเสมอ'
+        ],
+        growth: [
+            'ปฏิเสธผู้อื่นยากจนอาจแบกรับภาระไว้เกินไป',
+            'อาจยอมละเลยความต้องการของตนเองเพื่อหลีกเลี่ยงข้อขัดแย้ง'
+        ]
+    },
+    N: {
+        title: 'N — "NEO" THE OBSERVER (ผู้สังเกตการณ์ที่รอบคอบ)',
+        desc: 'คุณมีความตระหนักรู้ ไวต่อรายละเอียดรอบตัว และประเมินความเสี่ยงได้อย่างระมัดระวัง',
+        color: '#c084fc',
+        strengths: [
+            'มองเห็นจุดผิดพลาดและความเสี่ยงที่ผู้อื่นมองข้าม',
+            'เตรียมพร้อมรับมือกับสถานการณ์ไม่คาดคิดเสมอ',
+            'มีความไวต่อการเปลี่ยนแปลงของสิ่งแวดล้อม'
+        ],
+        growth: [
+            'มีแนวโน้มกังวลกับสถานการณ์ในอนาคตได้ง่าย',
+            'อาจรู้สึกกดดันเมื่อเผชิญกับสภาวะเครียดสูง'
+        ]
+    }
+};
+
+const QUESTIONS = [
+    { id: 1, trait: 'O', text: '1. ฉันชอบเรียนรู้เรื่องใหม่ ๆ แม้เป็นเรื่องที่ไม่คุ้นเคย' },
+    { id: 2, trait: 'O', text: '2. ฉันเปิดรับความคิดเห็นหรือมุมมองที่แตกต่างจากตัวเอง' },
+    { id: 3, trait: 'O', text: '3. ฉันชอบทดลองวิธีใหม่ ๆ แทนการทำแบบเดิมเสมอ' },
+    { id: 4, trait: 'O', text: '4. ฉันสนใจเรื่องราวหรือแนวคิดที่หลากหลาย' },
+    { id: 5, trait: 'O', text: '5. ฉันมักมองหาวิธีใหม่ในการแก้ปัญหา' },
+    { id: 6, trait: 'O', text: '6. ฉันรู้สึกสนุกเมื่อได้พบประสบการณ์ใหม่ ๆ' },
+    { id: 7, trait: 'C', text: '7. ฉันมักวางแผนก่อนลงมือทำ' },
+    { id: 8, trait: 'C', text: '8. ฉันตั้งเป้าหมายและพยายามทำให้สำเร็จตามที่กำหนด' },
+    { id: 9, trait: 'C', text: '9. ฉันให้ความสำคัญกับรายละเอียดของงาน' },
+    { id: 10, trait: 'C', text: '10. ฉันมีวินัยในการทำสิ่งที่ได้รับมอบหมาย' },
+    { id: 11, trait: 'C', text: '11. ฉันมักจัดลำดับความสำคัญของสิ่งที่ต้องทำ' },
+    { id: 12, trait: 'C', text: '12. ฉันพยายามทำงานให้เสร็จตามกำหนดเวลา' },
+    { id: 13, trait: 'E', text: '13. ฉันรู้สึกสบายใจเมื่อต้องพูดคุยกับคนใหม่ ๆ' },
+    { id: 14, trait: 'E', text: '14. ฉันสามารถเริ่มต้นบทสนทนากับผู้อื่นได้ง่าย' },
+    { id: 15, trait: 'E', text: '15. ฉันชอบทำกิจกรรมร่วมกับคนอื่น' },
+    { id: 16, trait: 'E', text: '16. ฉันกล้าแสดงความคิดเห็นต่อหน้าคนอื่น' },
+    { id: 17, trait: 'E', text: '17. ฉันรู้สึกมีพลังเมื่อได้พบปะผู้คน' },
+    { id: 18, trait: 'E', text: '18. ฉันมักมีส่วนร่วมในการพูดคุยหรือกิจกรรมกลุ่ม' },
+    { id: 19, trait: 'A', text: '19. ฉันพยายามเข้าใจความรู้สึกของผู้อื่น' },
+    { id: 20, trait: 'A', text: '20. ฉันให้ความสำคัญกับความรู้สึกของคนรอบตัว' },
+    { id: 21, trait: 'A', text: '21. ฉันพร้อมช่วยเหลือผู้อื่นเมื่อมีโอกาส' },
+    { id: 22, trait: 'A', text: '22. ฉันพยายามหลีกเลี่ยงความขัดแย้งที่ไม่จำเป็น' },
+    { id: 23, trait: 'A', text: '23. ฉันสามารถประนีประนอมเพื่อให้ทุกฝ่ายทำงานร่วมกันได้' },
+    { id: 24, trait: 'A', text: '24. ฉันมักคำนึงถึงผลกระทบของการกระทำของฉันต่อผู้อื่น' },
+    { id: 25, trait: 'N', text: '25. ฉันมักกังวลเมื่อเผชิญกับสถานการณ์ที่ไม่แน่นอน' },
+    { id: 26, trait: 'N', text: '26. ฉันมีแนวโน้มคิดมากเมื่อเกิดปัญหา' },
+    { id: 27, trait: 'N', text: '27. ฉันรู้สึกกดดันได้ง่ายเมื่อมีหลายเรื่องต้องจัดการ' },
+    { id: 28, trait: 'N', text: '28. ฉันมักรู้สึกไม่สบายใจเมื่อไม่สามารถควบคุมสถานการณ์ได้' },
+    { id: 29, trait: 'N', text: '29. ฉันมีความไวต่อความเครียดหรือแรงกดดัน' },
+    { id: 30, trait: 'N', text: '30. ฉันมักกังวลกับสิ่งที่อาจเกิดขึ้นในอนาคต' }
+];
+
+const SECTIONS = [
+    { title: "หมวดที่ 1: การเปิดรับประสบการณ์ (Openness)", start: 0, end: 6 },
+    { title: "หมวดที่ 2: การวางแผนและระเบียบวินัย (Conscientiousness)", start: 6, end: 12 },
+    { title: "หมวดที่ 3: พลังการเข้าสังคมและการสื่อสาร (Extraversion)", start: 12, end: 18 },
+    { title: "หมวดที่ 4: ความเห็นอกเห็นใจและความประนีประนอม (Agreeableness)", start: 18, end: 24 },
+    { title: "หมวดที่ 5: การตอบสนองต่ออารมณ์และความเครียด (Neuroticism)", start: 24, end: 30 }
+];
+
+const OPTIONS = [
+    { value: 1, label: "ไม่ตรงเลย" }, { value: 2, label: "ค่อนข้างไม่ตรง" },
+    { value: 3, label: "ปานกลาง" }, { value: 4, label: "ค่อนข้างตรง" }, { value: 5, label: "ตรงมากที่สุด" }
+];
+
+let currentSection = 0; let answers = {};
+
+document.getElementById('btn-start').addEventListener('click', () => {
+    document.getElementById('screen-landing').classList.remove('active');
+    document.getElementById('screen-quiz').classList.add('active');
+    renderQuiz();
+});
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+    answers = {}; currentSection = 0;
+    document.documentElement.style.setProperty('--bg-color', '#f8fafc');
+    document.documentElement.style.setProperty('--card-bg', '#ffffff');
+    document.documentElement.style.setProperty('--text-dark', '#1e293b');
+    document.documentElement.style.setProperty('--text-gold', '#b4832e');
+    document.documentElement.style.setProperty('--border-light', '#e2e8f0');
+    document.documentElement.style.setProperty('--text-muted', '#64748b');
+    
+    document.getElementById('screen-result').classList.remove('active');
+    document.getElementById('screen-landing').classList.add('active');
+    window.scrollTo(0, 0);
+});
+
+document.getElementById('btn-next').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (!validateSection()) { document.getElementById('validation-alert').style.display = 'block'; return; }
+    document.getElementById('validation-alert').style.display = 'none';
+    if (currentSection < SECTIONS.length - 1) { currentSection++; renderQuiz(); window.scrollTo(0, 0); } 
+    else { showResults(); window.scrollTo(0, 0); }
+});
+
+document.getElementById('btn-prev').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (currentSection > 0) { currentSection--; document.getElementById('validation-alert').style.display = 'none'; renderQuiz(); window.scrollTo(0, 0); }
+});
+
+function renderQuiz() {
+    const sec = SECTIONS[currentSection];
+    document.getElementById('section-title').textContent = sec.title;
+    document.getElementById('progress-text').textContent = `ข้อ ${sec.start + 1}-${sec.end} / 30`;
+    document.getElementById('progress-fill').style.width = `${(sec.end / 30) * 100}%`;
+    
+    document.getElementById('btn-prev').style.visibility = currentSection === 0 ? 'hidden' : 'visible';
+    document.getElementById('btn-next').textContent = currentSection === SECTIONS.length - 1 ? 'ดูผลการประเมิน ✨' : 'ถัดไป ▶';
+
+    const container = document.getElementById('questions-container');
+    container.innerHTML = '';
+    QUESTIONS.slice(sec.start, sec.end).forEach(q => {
+        const card = document.createElement('div');
+        card.className = 'question-card'; card.id = `q-${q.id}`;
+        card.innerHTML = `<div class="question-title">${q.text}</div>`;
+        const grid = document.createElement('div'); grid.className = 'options-grid';
+        
+        OPTIONS.forEach(opt => {
+            const btn = document.createElement('div'); btn.className = 'option-btn';
+            if (answers[q.id] === opt.value) btn.classList.add('selected');
+            btn.textContent = `${opt.value}. ${opt.label}`;
+            btn.onclick = () => {
+                answers[q.id] = opt.value; card.classList.remove('unanswered');
+                Array.from(grid.children).forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                validateSection(false);
+            };
+            grid.appendChild(btn);
+        });
+        card.appendChild(grid); container.appendChild(card);
+    });
+}
+
+function validateSection(highlight = true) {
+    let ok = true;
+    QUESTIONS.slice(SECTIONS[currentSection].start, SECTIONS[currentSection].end).forEach(q => {
+        const c = document.getElementById(`q-${q.id}`);
+        if (!answers[q.id]) { ok = false; if (highlight) c.classList.add('unanswered'); } 
+        else { c.classList.remove('unanswered'); }
+    });
+    if(ok) document.getElementById('validation-alert').style.display = 'none';
+    return ok;
+}
+
+function showResults() {
+    document.getElementById('screen-quiz').classList.remove('active');
+    document.getElementById('screen-result').classList.add('active');
+    
+    let raw = { O: 0, C: 0, E: 0, A: 0, N: 0 };
+    QUESTIONS.forEach(q => { raw[q.trait] += (answers[q.id] || 0); });
+    let n = {}; for (let t in raw) n[t] = Math.round(((raw[t] - 6) / 24) * 100);
+
+    let maxTrait = 'O'; let maxVal = -1;
+    for (let t in n) {
+        if (n[t] > maxVal) { maxVal = n[t]; maxTrait = t; }
+    }
+
+    const traitData = TRAIT_ANALYSIS[maxTrait];
+    const themeStyle = THEME_STYLES[maxTrait] || THEME_STYLES.N;
+
+    document.documentElement.style.setProperty('--bg-color', themeStyle.bgColor);
+    document.documentElement.style.setProperty('--card-bg', themeStyle.cardBg);
+    document.documentElement.style.setProperty('--text-dark', themeStyle.textColor);
+    document.documentElement.style.setProperty('--text-gold', themeStyle.textGold);
+    document.documentElement.style.setProperty('--border-light', themeStyle.borderLight);
+    document.documentElement.style.setProperty('--text-muted', themeStyle.mutedColor);
+    document.documentElement.style.setProperty('--theme-color', traitData.color);
+
+    document.getElementById('result-title').textContent = traitData.title;
+    document.getElementById('result-desc').textContent = traitData.desc;
+    document.getElementById('result-card-img').src = LOCAL_CARDS[maxTrait];
+
+    const strengthsList = document.getElementById('strengths-list');
+    strengthsList.innerHTML = '';
+    traitData.strengths.forEach(item => {
+        strengthsList.innerHTML += `<li>${item}</li>`;
+    });
+
+    const growthList = document.getElementById('growth-list');
+    growthList.innerHTML = '';
+    traitData.growth.forEach(item => {
+        growthList.innerHTML += `<li>${item}</li>`;
+    });
+
+    const labels = {
+        O: 'การเปิดรับประสบการณ์ (Openness)',
+        C: 'การวางแผนและระเบียบวินัย (Conscientiousness)',
+        E: 'พลังการเข้าสังคมและการสื่อสาร (Extraversion)',
+        A: 'ความเห็นอกเห็นใจ (Agreeableness)',
+        N: 'การตอบสนองต่ออารมณ์ (Neuroticism)'
+    };
+
+    const traitColors = {
+        O: 'var(--color-o)',
+        C: 'var(--color-c)',
+        E: 'var(--color-e)',
+        A: 'var(--color-a)',
+        N: 'var(--color-n)'
+    };
+    
+    const container = document.getElementById('scores-container'); 
+    container.innerHTML = '';
+    for (let t in n) {
+        container.innerHTML += `
+            <div class="score-row">
+                <div class="score-label">${labels[t]}</div>
+                <div class="score-bar-bg"><div class="score-bar-fill" style="width: ${n[t]}%; background: ${traitColors[t]};"></div></div>
+                <div class="score-value" style="color: ${traitColors[t]};">${n[t]}%</div>
+            </div>`;
+    }
+}
+</script>
+</body>
+</html>
